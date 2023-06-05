@@ -4,8 +4,8 @@ contract VehicleList {
     struct Vehicle {
         uint256 vid;
         uint256 speed;
-        string model;
-        string color;
+        string latitude;
+        string longitude;
     }
 
     Vehicle[] public vehicles;
@@ -15,8 +15,8 @@ contract VehicleList {
         return vehicles;
     }
 
-    function addVehicle(uint256 _vid, uint256 _speed, string memory _model, string memory _color) public {
-        vehicles.push(Vehicle(_vid, _speed, _model, _color));
+    function addVehicle(uint256 _vid, uint256 _speed, string memory _latitude, string memory _longitude) public {
+        vehicles.push(Vehicle(_vid, _speed, _latitude, _longitude));
         vehicleIndex[_vid] = vehicles.length - 1;
     }
 

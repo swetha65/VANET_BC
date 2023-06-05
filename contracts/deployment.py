@@ -2,8 +2,8 @@ from solcx import compile_standard, install_solc
 import json
 from web3 import Web3
 
-def add_vehicle(vehicle_list, vid, speed, model, color, address, private_key, chain_id, nonce):
-    add_vehicle_transaction = vehicle_list.functions.addVehicle(vid, speed, model, color).build_transaction(
+def add_vehicle(vehicle_list, vid, speed, lat, lon, address, private_key, chain_id, nonce):
+    add_vehicle_transaction = vehicle_list.functions.addVehicle(vid, speed, lat, lon).build_transaction(
         {"chainId": chain_id, "from": address, "gasPrice": w3.eth.gas_price, "nonce": nonce}
     )
 
@@ -15,7 +15,7 @@ def add_vehicle(vehicle_list, vid, speed, model, color, address, private_key, ch
     # Wait for the transaction to be mined, and get the transaction receipt
     transaction_receipt = w3.eth.wait_for_transaction_receipt(send_add_vehicle)
 
-    print(f"New vehicle added! VID: {vid}, Speed: {speed}, Model: {model}, Color: {color}")
+    print(f"New vehicle added! VID: {vid}, Speed: {speed}, Latitude: {lat}, Longitude: {lon}")
     print(vehicle_list.functions.retrieve().call())
 
 def remove_vehicle(vehicle_list, vid, address, private_key, chain_id, nonce):
@@ -106,16 +106,16 @@ vehicle_list = w3.eth.contract(address=transaction_receipt.contractAddress, abi=
 # Call add_vehicle function
 vid = 1
 speed = 100
-model = "Tesla"
-color = "Red"
-add_vehicle(vehicle_list, vid, speed, model, color, address, private_key, chain_id, nonce + 1)
+latitude = "8.21462"
+longitude = "10.26429"
+add_vehicle(vehicle_list, vid, speed, latitude, longitude, address, private_key, chain_id, nonce + 1)
 
 # Call add_vehicle function again with different data
 vid = 2
 speed = 80
-model = "BMW"
-color = "Blue"
-add_vehicle(vehicle_list, vid, speed, model, color, address, private_key, chain_id, nonce + 2)
+latitude = "5.127386"
+longitude = "13.98342"
+add_vehicle(vehicle_list, vid, speed, latitude, longitude, address, private_key, chain_id, nonce + 2)
 
 # Call remove_vehicle function to remove a vehicle
 vehicle_id_to_remove = 1
