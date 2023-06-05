@@ -2,39 +2,39 @@ from solcx import compile_standard, install_solc
 import json
 from web3 import Web3
 
-def add_contact(contact_list, name, phone, address, private_key, chain_id, nonce):
-    add_contact_transaction = contact_list.functions.addContact(name, phone).build_transaction(
+def add_vehicle(vehicle_list, vid, speed, model, color, address, private_key, chain_id, nonce):
+    add_vehicle_transaction = vehicle_list.functions.addVehicle(vid, speed, model, color).build_transaction(
         {"chainId": chain_id, "from": address, "gasPrice": w3.eth.gas_price, "nonce": nonce}
     )
 
     # Sign the transaction
-    sign_add_contact = w3.eth.account.sign_transaction(add_contact_transaction, private_key=private_key)
+    sign_add_vehicle = w3.eth.account.sign_transaction(add_vehicle_transaction, private_key=private_key)
     # Send the transaction
-    send_add_contact = w3.eth.send_raw_transaction(sign_add_contact.rawTransaction)
+    send_add_vehicle = w3.eth.send_raw_transaction(sign_add_vehicle.rawTransaction)
 
     # Wait for the transaction to be mined, and get the transaction receipt
-    transaction_receipt = w3.eth.wait_for_transaction_receipt(send_add_contact)
+    transaction_receipt = w3.eth.wait_for_transaction_receipt(send_add_vehicle)
 
-    print(f"New contact added! Name: {name}, Phone: {phone}")
-    print(contact_list.functions.retrieve().call())
+    print(f"New vehicle added! VID: {vid}, Speed: {speed}, Model: {model}, Color: {color}")
+    print(vehicle_list.functions.retrieve().call())
 
-def remove_contact(contact_list, contact_id, address, private_key, chain_id, nonce):
-    remove_contact_transaction = contact_list.functions.removeContact(contact_id).build_transaction(
+def remove_vehicle(vehicle_list, vid, address, private_key, chain_id, nonce):
+    remove_vehicle_transaction = vehicle_list.functions.removeVehicle(vid).build_transaction(
         {"chainId": chain_id, "from": address, "gasPrice": w3.eth.gas_price, "nonce": nonce}
     )
 
     # Sign the transaction
-    sign_remove_contact = w3.eth.account.sign_transaction(remove_contact_transaction, private_key=private_key)
+    sign_remove_vehicle = w3.eth.account.sign_transaction(remove_vehicle_transaction, private_key=private_key)
     # Send the transaction
-    send_remove_contact = w3.eth.send_raw_transaction(sign_remove_contact.rawTransaction)
+    send_remove_vehicle = w3.eth.send_raw_transaction(sign_remove_vehicle.rawTransaction)
 
     # Wait for the transaction to be mined, and get the transaction receipt
-    transaction_receipt = w3.eth.wait_for_transaction_receipt(send_remove_contact)
+    transaction_receipt = w3.eth.wait_for_transaction_receipt(send_remove_vehicle)
 
-    print(f"Contact removed! Contact ID: {contact_id}")
-    print(contact_list.functions.retrieve().call())
+    print(f"Vehicle removed! VID: {vid}")
+    print(vehicle_list.functions.retrieve().call())
 
-with open("ContactList.sol", "r") as file:
+with open("VehicleList.sol", "r") as file:
     contact_list_file = file.read()
 
 install_solc("0.8.0")
@@ -42,7 +42,7 @@ install_solc("0.8.0")
 compiled_sol = compile_standard(
     {
         "language": "Solidity",
-        "sources": {"ContactList.sol": {"content": contact_list_file}},
+        "sources": {"VehicleList.sol": {"content": contact_list_file}},
         "settings": {
             "outputSelection": {
                 "*": {
@@ -63,13 +63,13 @@ with open("compiler_output.json", "w") as file:
     json.dump(compiled_sol, file)
 
 # get bytecode
-bytecode = compiled_sol["contracts"]["ContactList.sol"]["ContactList"]["evm"][
+bytecode = compiled_sol["contracts"]["VehicleList.sol"]["VehicleList"]["evm"][
     "bytecode"
 ]["object"]
 
 # get abi
 abi = json.loads(
-    compiled_sol["contracts"]["ContactList.sol"]["ContactList"]["metadata"]
+    compiled_sol["contracts"]["VehicleList.sol"]["VehicleList"]["metadata"]
 )["output"]["abi"]
 
 # For connecting to ganache
@@ -81,13 +81,13 @@ private_key = (
 )  # leaving the private key like this is very insecure if you are working on real world project
 
 # Create the contract in Python
-ContactList = w3.eth.contract(abi=abi, bytecode=bytecode)
+VehicleList = w3.eth.contract(abi=abi, bytecode=bytecode)
 print('Contract created')
 # Get the latest transaction
 nonce = w3.eth.get_transaction_count(address)
 print('Got the latest transaction')
 # build transaction
-transaction = ContactList.constructor().build_transaction(
+transaction = VehicleList.constructor().build_transaction(
     {"chainId": chain_id, "gasPrice": w3.eth.gas_price, "from": address, "nonce": nonce}
 )
 print('built transaction')
@@ -101,16 +101,23 @@ print("Waiting for transaction to finish...")
 transaction_receipt = w3.eth.wait_for_transaction_receipt(transaction_hash)
 print(f"Done! Contract deployed to {transaction_receipt.contractAddress}")
 
-contact_list = w3.eth.contract(address=transaction_receipt.contractAddress, abi=abi)
+vehicle_list = w3.eth.contract(address=transaction_receipt.contractAddress, abi=abi)
 
-new_name = "John Doe"
-new_phone = "+123456789"
-add_contact(contact_list, new_name, new_phone, address, private_key, chain_id, nonce + 1)
+# Call add_vehicle function
+vid = 1
+speed = 100
+model = "Tesla"
+color = "Red"
+add_vehicle(vehicle_list, vid, speed, model, color, address, private_key, chain_id, nonce + 1)
 
-# Call add_contact function again with different data
-another_name = "Jane Smith"
-another_phone = "+987654321"
-add_contact(contact_list, another_name, another_phone, address, private_key, chain_id, nonce + 2)
+# Call add_vehicle function again with different data
+vid = 2
+speed = 80
+model = "BMW"
+color = "Blue"
+add_vehicle(vehicle_list, vid, speed, model, color, address, private_key, chain_id, nonce + 2)
 
-contact_id_to_remove = 0
-remove_contact(contact_list, contact_id_to_remove, address, private_key, chain_id, nonce + 3)
+# Call remove_vehicle function to remove a vehicle
+vehicle_id_to_remove = 1
+remove_vehicle(vehicle_list, vehicle_id_to_remove, address, private_key, chain_id, nonce + 3)
+
